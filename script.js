@@ -35,7 +35,6 @@ class Model {
     }
 
     getListUsers = (users) => {
-        console.log(users);
         let list = [];
         users.forEach((user) => {
             let userItem = {
@@ -72,13 +71,10 @@ class View {
     constructor() {
         this.app = this.getElement('#root');
 
-        this.userList = this.createElement('ul', 'user-list');
-
-        this.form = document.createElement("form");
+        this.userList = this.createElement('ul', ["users__list", "container"]);
 
         
         this.selectList = this.createElement('select');
-        this.form.append(this.selectList);
 
         this.optionDefault = this.createElement('option');
         this.optionDefault.text = 'sort';
@@ -98,11 +94,15 @@ class View {
 
         this.selectList.append(this.optionDefault, this.optionSort, this.optionRevers);
 
-        this.app.append(this.form, this.userList);
+        this.app.append(this.selectList, this.userList);
     }
     createElement(tag, className) {
         const element = document.createElement(tag);
-        if (className) element.classList.add(className);
+        if (className) {
+            if(className instanceof Array) {
+                element.classList.add(...className);
+            } else element.classList.add(className);
+        };
         return element;
     }
 
@@ -127,14 +127,14 @@ class View {
             this.userList.append(p);
             } else {
             users.forEach((user, id) => {
-                const li = this.createElement('li');
+                const li = this.createElement('li', 'users__item');
                 li.id = id;
                 
-                const img = this.createElement('img', 'img-medium');
+                const img = this.createElement('img', 'users__item-img');
                 img.setAttribute('src', user.picture);
                 img.setAttribute('alt', 'photo');
 
-                const name = this.createElement('p');
+                const name = this.createElement('p', 'users__item-name');
                 name.textContent = `${user.name.title}. ${user.name.first} ${user.name.last}`;
 
                 li.append(img, name);
@@ -145,7 +145,7 @@ class View {
     }
 
     displayUserDetail(user) {
-        const userDetail = this.createElement('div', 'user-detail');
+        const userDetail = this.createElement('div', 'user_detail');
 
         const closeButton = this.createElement('button', 'close');
         closeButton.textContent = 'close';
@@ -174,7 +174,9 @@ class View {
 
         userDetail.append(img, name, street, city, state, email, phone, closeButton);
 
-        this.app.append(userDetail);
+        const overlay = this.createElement('dis', 'user_detail-overlay')
+
+        this.app.append(userDetail, overlay);
     }
 
     bindSelectSort(handler) {
@@ -221,6 +223,7 @@ class Controller {
 
     bindCloseUser(className) {
         this.view.removeElement(`.${className}`);
+        this.view.removeElement(`.${className}-overlay`);
         this.view.bindGetUserDetail((id) => this.bindGetUser(id));
     }
 
