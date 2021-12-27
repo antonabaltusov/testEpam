@@ -1,73 +1,4 @@
-class Model {
-    constructor() {
-        this.users;
-    }
-
-    getData = (callback, functionGetListUsers = this.getListUsers) => {
-        let xhr = new XMLHttpRequest();
-        xhr.open('GET', 'https://api.randomuser.me/1.0/?results=50&nat=gb,us&inc=gender,name,location,email,phone,picture');
-        xhr.responseType = 'json';
-        xhr.send();
-        xhr.onload = () => {
-            if (xhr.status != 200) {
-                alert(`Ошибка ${xhr.status}: ${xhr.statusText}`); 
-              } else {
-                let results = xhr.response.results;
-                this.users = results;
-                callback(functionGetListUsers(results));
-              }
-        };
-    }
-
-    getUserDetail = (id) => {
-        let user = this.users[id];
-        return {
-            picture: user.picture.large,
-            name: user.name,
-            location: {
-                street: user.location.street,
-                city: user.location.city,
-                state: user.location.state,
-            },
-            email: user.email,
-            phone: user.phone
-        }
-    }
-
-    getListUsers = (users) => {
-        let list = [];
-        users.forEach((user) => {
-            let userItem = {
-                picture: user.picture.medium,
-                name: user.name
-            };
-            list.push(userItem);
-        })
-        return list;
-    }
-
-    sortUsers = (direction) => {
-        this.users.sort(function(a, b){
-            var nameA=a.name.first.toLowerCase(), nameB=b.name.first.toLowerCase();
-            if (direction) {
-                if (nameA < nameB)
-                return -1
-                if (nameA > nameB)
-                return 1
-                return 0
-            } else {
-                if (nameA > nameB)
-                return -1
-                if (nameA < nameB)
-                return 1
-                return 0
-            }
-        });
-        return this.getListUsers(this.users);
-    }
-}
- 
-class View {
+export class View {
     constructor() {
         this.app = this.getElement('#root');
 
@@ -96,7 +27,11 @@ class View {
 
         this.app.append(this.selectList, this.userList);
     }
-    createElement(tag, className) {
+    displayError = (err) => {
+        this.app.append(err)
+    };
+
+    createElement = (tag, className) => {
         const element = document.createElement(tag);
         if (className) {
             if(className instanceof Array) {
@@ -104,28 +39,28 @@ class View {
             } else element.classList.add(className);
         };
         return element;
-    }
+    };
 
-    getElement(selector) {
+    getElement = (selector) => {
         const element = document.querySelector(selector);
         return element;
-    }
+    };
 
-    removeElement(selector) {
+    removeElement = (selector) => {
         const element = this.getElement(selector);
         element.remove();
-    }
+    };
 
-    displayListUsers(users) {
+    displayListUsers = (users) => {
         while (this.userList.firstChild) {
             this.userList.removeChild(this.userList.firstChild)
-            }
+        }
             
-            if (users.length === 0) {
+        if (users.length === 0) {
             const p = this.createElement('p');
             p.textContent = 'the list is empty';
             this.userList.append(p);
-            } else {
+        } else {
             users.forEach((user, id) => {
                 const li = this.createElement('li', 'users__item');
                 li.id = id;
@@ -140,11 +75,11 @@ class View {
                 li.append(img, name);
             
                 this.userList.append(li);
-                })
-        }
-    }
+            })
+        };
+    };
 
-    displayUserDetail(user, handler) {
+    displayUserDetail = (user, handler) => {
         const userDetail = this.createElement('div', 'user_detail');
 
         const userDetailBox = this.createElement('div', 'user_detail-box');
@@ -184,58 +119,28 @@ class View {
         const overlay = this.createElement('dis', 'user_detail-overlay')
 
         this.app.append(userDetail, overlay);
-    }
+    };
 
-    bindSelectSort(handler) {
+    bindSelectSort = (handler) => {
         this.selectList.addEventListener('change', () => {handler(this.selectList.value)});
-    }
+    };
 
-    bindGetUserDetail(handler) {
+    bindGetUserDetail = (handler) => {
         this.userList.addEventListener('click', event => {
             const id = parseInt(event.target.parentElement.id);
-            handler(id);
-            
+            if (id) {
+                handler(id);
+            } else {
+                this.bindGetUserDetail(handler);
+            }
         }, {once:true});
-    }
+    };
 
-    bindCloseUserDetail(handler, element) {
-
+    bindCloseUserDetail = (handler, element) => {
         element.addEventListener('click', event => {
           if (event.target.className === 'user_detail-close') {
             handler(event.target.parentElement.parentElement.className)
           }
         }, {once:true});
-        
-    }
+    };
 }
-  
-class Controller {
-    constructor(model, view) {
-        this.model = model;
-        this.view = view;
-        
-        this.render();
-
-        this.view.bindSelectSort((direction) => this.bindSortUsers(direction));
-        this.view.bindGetUserDetail((id) => this.bindGetUser(id));
-    }
-    render() {
-        this.model.getData((data) => {this.view.displayListUsers(data)});
-    }
-
-    bindSortUsers(direction) {this.view.displayListUsers(this.model.sortUsers(direction))}
-
-    bindGetUser(id) {
-        this.view.displayUserDetail(this.model.getUserDetail(id), (className) => this.bindCloseUser(className));
-    }
-
-    bindCloseUser(className) {
-        this.view.removeElement(`.${className}`);
-        this.view.removeElement(`.${className}-overlay`);
-        this.view.bindGetUserDetail((id) => this.bindGetUser(id));
-    }
-
-}
-  
-  const app = new Controller(new Model(), new View());
- 
