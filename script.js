@@ -74,19 +74,19 @@ class View {
         this.userList = this.createElement('ul', ["users__list", "container"]);
 
         
-        this.selectList = this.createElement('select');
+        this.selectList = this.createElement('select', 'select');
 
-        this.optionDefault = this.createElement('option');
+        this.optionDefault = this.createElement('option', 'option');
         this.optionDefault.text = 'sort';
         this.optionDefault.hidden = true;
 
-        this.optionSort = this.createElement('option');
+        this.optionSort = this.createElement('option', 'option');
         this.optionSort.value = '1';
         this.optionSort.id = 'sort-users';
         this.optionSort.selected = false;
         this.optionSort.text = `from A to Z`;
 
-        this.optionRevers = this.createElement('option');
+        this.optionRevers = this.createElement('option', 'option');
         this.optionRevers.value = '';
         this.optionRevers.id = 'sort-users';
         this.optionRevers.selected = false;
@@ -144,35 +144,42 @@ class View {
         }
     }
 
-    displayUserDetail(user) {
+    displayUserDetail(user, handler) {
         const userDetail = this.createElement('div', 'user_detail');
 
-        const closeButton = this.createElement('button', 'close');
-        closeButton.textContent = 'close';
+        const userDetailBox = this.createElement('div', 'user_detail-box');
 
-        const img = this.createElement('img', 'img-medium');
+        const closeButton = this.createElement('button', 'user_detail-close');
+        closeButton.textContent = 'close';
+        this.bindCloseUserDetail(handler, closeButton);
+
+        const img = this.createElement('img', 'user_detail-img');
         img.setAttribute('src', user.picture);
         img.setAttribute('alt', 'photo');
 
-        const name = this.createElement('p');
+        const info = this.createElement('div', 'user_detail-info');
+
+        const name = this.createElement('p', 'user_detail-text');
         name.textContent = `${user.name.title}. ${user.name.first} ${user.name.last}`;
 
-        const street = this.createElement('p');
+        const street = this.createElement('p', 'user_detail-text');
         street.textContent = `street: ${user.location.street}`;
 
-        const city = this.createElement('p');
+        const city = this.createElement('p', 'user_detail-text');
         city.textContent = `city: ${user.location.city}`;
 
-        const state = this.createElement('p');
+        const state = this.createElement('p', 'user_detail-text');
         state.textContent = `state: ${user.location.state}`;
 
-        const email = this.createElement('p');
+        const email = this.createElement('p', 'user_detail-text');
         email.textContent = `email: ${user.email}`;
 
-        const phone = this.createElement('p');
+        const phone = this.createElement('p', 'user_detail-text');
         phone.textContent = `phone: ${user.phone}`;
 
-        userDetail.append(img, name, street, city, state, email, phone, closeButton);
+        info.append(name, street, city, state, email, phone);
+        userDetailBox.append(img, info, closeButton);
+        userDetail.append(userDetailBox);
 
         const overlay = this.createElement('dis', 'user_detail-overlay')
 
@@ -191,12 +198,14 @@ class View {
         }, {once:true});
     }
 
-    bindCloseUserDetail(handler) {
-        this.app.addEventListener('click', event => {
-          if (event.target.className === 'close') {
-            handler(event.target.parentElement.className)
+    bindCloseUserDetail(handler, element) {
+
+        element.addEventListener('click', event => {
+          if (event.target.className === 'user_detail-close') {
+            handler(event.target.parentElement.parentElement.className)
           }
-        });
+        }, {once:true});
+        
     }
 }
   
@@ -217,8 +226,7 @@ class Controller {
     bindSortUsers(direction) {this.view.displayListUsers(this.model.sortUsers(direction))}
 
     bindGetUser(id) {
-        this.view.displayUserDetail(this.model.getUserDetail(id));
-        this.view.bindCloseUserDetail((className) => this.bindCloseUser(className));
+        this.view.displayUserDetail(this.model.getUserDetail(id), (className) => this.bindCloseUser(className));
     }
 
     bindCloseUser(className) {
