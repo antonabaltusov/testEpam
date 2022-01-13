@@ -128,7 +128,7 @@ export class View {
     bindGetUserDetail = (handler) => {
         this.userList.addEventListener('click', event => {
             const id = parseInt(event.target.parentElement.id);
-            if (id) {
+            if (id || id === 0) {
                 handler(id);
             } else {
                 this.bindGetUserDetail(handler);
