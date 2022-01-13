@@ -5,11 +5,11 @@ export class Controller {
         
         this.render();
 
-        this.view.bindSelectSort((direction) => this.bindSortUsers(direction));
-        this.view.bindGetUserDetail((id) => this.bindGetUser(id));
+        this.view.bindSelectSort(this.bindSortUsers);
+        this.view.bindGetUserDetail(this.bindGetUser);
     }
     render =() => {
-        this.model.getData((data) => {this.view.displayListUsers(data)}, (err) => {this.view.displayError(err)});
+        this.model.getData(this.view.displayListUsers, this.view.displayError);
     };
 
     bindSortUsers = (direction) => {this.view.displayListUsers(this.model.sortUsers(direction))};
@@ -21,7 +21,7 @@ export class Controller {
     bindCloseUser = (className) => {
         this.view.removeElement(`.${className}`);
         this.view.removeElement(`.${className}-overlay`);
-        this.view.bindGetUserDetail((id) => this.bindGetUser(id));
+        this.view.bindGetUserDetail(this.bindGetUser);
     };
 }
 
